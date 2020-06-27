@@ -82,11 +82,12 @@ class Modify extends React.Component {
   }
 
   handleEntry = () => {
+    const {open_amt,doc_type,id} = this.state
     axios.post("http://localhost:8080/1706592/dummy.do?",
       {}, {
-      params: { open_amt: this.state.open_amt, doctype: this.state.doc_type, id: this.state.id }
+      params: { open_amt: open_amt, doctype: doc_type, id: id }
     })
-      .then(response => {
+      .then(() => {
         this.setState({
           open: false,
           open_amt: "",
@@ -95,7 +96,8 @@ class Modify extends React.Component {
           openamtPlaceholder: null,
           doctypePlaceholder: null
         });
-        this.props.rerenderParentCallback();
+
+        this.props.rerenderParentCallback(open_amt,doc_type,id);
       })
 
       .catch(error => {

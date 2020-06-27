@@ -19,6 +19,7 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import { CSVLink } from "react-csv";
 import Grid from '@material-ui/core/Grid';
 import { connect } from 'react-redux'
+import { fetchData } from '../redux/reducer'
 
 const rows = [
   { id: 'company_id', numeric: false, disablePadding: true, label: 'Company ID' },
@@ -122,27 +123,24 @@ class EnhancedTableToolbar extends Component {
   constructor(props) {
     super(props);
     this.state = { updated: false }
-    this.rerenderParentCallback = this.rerenderParentCallback.bind(this);
   }
 
-  rerenderParentCallback() {
-    this.props.curr_state.componentDidMount()
+  rerenderParentCallback = (open, doc, id) => {
+    this.props.curr_state.handleReRender(open, doc, id)
   }
 
   render() {
-    const { classes, numSelected, id, data, selected_records } = this.props;
+    const { classes, numSelected, selected_records } = this.props;
 
     let openamt = 0
     let doctype = null
+    let id = 0
 
-    data.forEach(e => {
-      if (e.pk_id === id) {
-        openamt = e.total_open_amount
-        doctype = e.doctype
-      }
-    })
-
-    let disable = numSelected > 0 ? false : true
+    if (selected_records.length === 1) {
+      openamt = selected_records[0].total_open_amount
+      doctype = selected_records[0].doctype
+      id = selected_records[0].pk_id
+    }
 
     return (
       <Toolbar
@@ -153,24 +151,15 @@ class EnhancedTableToolbar extends Component {
         <Grid container>
           <Grid item xs={7}>
             <div className={classes.actions}>
-              {numSelected === 1 ? (
 
-                <div style={{ float: 'left', marginTop: 15 }}>
-                  <Modify
-                    open='true'
-                    curr_doctype={doctype}
-                    curr_openamt={openamt}
-                    id={id}
-                    rerenderParentCallback={this.rerenderParentCallback} />
-                </div>
-
-              ) : (
-
-                  <div style={{ float: 'left', marginTop: 15 }}>
-                    <Modify open='false' id={id} />
-                  </div>
-
-                )}
+              <div style={{ float: 'left', marginTop: 15 }}>
+                <Modify
+                  open={numSelected === 1 ? 'true' : 'false'}
+                  curr_doctype={doctype}
+                  curr_openamt={openamt}
+                  id={id}
+                  rerenderParentCallback={this.rerenderParentCallback} />
+              </div>
 
               <CSVLink
                 filename="1706592_exportedData.csv"
@@ -182,7 +171,7 @@ class EnhancedTableToolbar extends Component {
                   autoid="export-button"
                   className={classes.button}
                   size="small"
-                  disabled={disable}
+                  disabled={numSelected > 0 ? false : true}
                   color="default"
                 >
                   Export
@@ -250,15 +239,29 @@ class EnhancedTable extends React.Component {
       selected_records: [],
       page: 0,
       rowsPerPage: 6,
-      selected_id: 0,
-      prev_selected: 0,
       open_amt: 0,
       open_invoices: 0,
     };
   }
 
-  static getDerivedStateFromProps(props, state) {
+  handleReRender = (open, doc, id) => {
+    let new_open_amt = 0
+    this.state.data.forEach(d => {
+      if (d.pk_id === id) {
+        d.total_open_amount = parseInt(open)
+        d.doctype = doc
+      }
+      new_open_amt += d.total_open_amount
+    })
 
+    this.setState({
+      selected: [],
+      selected_records: [],
+      open_amount: Math.round(new_open_amt)
+    })
+  }
+
+  static getDerivedStateFromProps(props, state) {
     if (state.data.length === 0) {
       const cust_num = props.cust[1]
       const rows = []
@@ -268,17 +271,16 @@ class EnhancedTable extends React.Component {
       props.data.forEach(ele => {
         if (ele.customer_number === cust_num) {
           amount += ele.total_open_amount
-
-          if (ele.isOpen === 1)
-            invoices++
-
+          invoices += ele.isOpen
           rows.push(ele)
         }
       })
 
       return {
-        data: rows, selected_id: 0, prev_selected: 0, selected: [],
-        open_invoices: invoices, open_amount: Math.round(amount)
+        data: rows,
+        selected: [],
+        open_invoices: invoices,
+        open_amount: Math.round(amount)
       }
     }
   }
@@ -313,16 +315,12 @@ class EnhancedTable extends React.Component {
     }
 
     if (event.target.checked) {
-      console.log('check',event.target,pk_id)
       this.setState({
         selected: newSelected,
-        prev_selected: this.state.selected_id,
-        selected_id: pk_id,
         selected_records: this.state.selected_records.concat([data])
       });
     }
     else {
-      console.log('uncheck',event.target,pk_id)
       let final_selected = []
       final_selected = this.state.selected_records.filter(e => {
         if (e.pk_id !== pk_id)
@@ -330,23 +328,10 @@ class EnhancedTable extends React.Component {
         return null
       })
 
-      if (selected.length - 1 === 0)
-        final_selected = []
-
-      if (this.state.prev_selected === pk_id)
-        this.setState({
-          selected: newSelected,
-          prev_selected: 0,
-          selected_records: final_selected
-        });
-
-      else
-        this.setState({
-          selected: newSelected,
-          selected_id: this.state.prev_selected,
-          prev_selected: 0,
-          selected_records: final_selected
-        })
+      this.setState({
+        selected: newSelected,
+        selected_records: final_selected
+      });
     }
   };
 
@@ -362,15 +347,19 @@ class EnhancedTable extends React.Component {
 
   render() {
     const { classes } = this.props;
-    const { selected, data, page, rowsPerPage, selected_id, open_amount, open_invoices, selected_records } = this.state;
+    const { selected, data, page, rowsPerPage, open_amount, open_invoices, selected_records } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
+
+    if (data.length === 0) {
+      return (
+        <LinearProgress />
+      )
+    }
 
     return (
       <Paper className={classes.root} autoid="invoice-table-customer" >
         <EnhancedTableToolbar
           numSelected={selected.length}
-          data={data}
-          id={selected_id}
           curr_state={this}
           selected_records={selected_records}
           amount={open_amount}
@@ -464,8 +453,15 @@ EnhancedTable.propTypes = {
 
 const mapStateToProps = (state) => {
   return {
-    data: state.data
+    data: state.data,
+    loading: state.loading
   }
 }
 
-export default connect(mapStateToProps)(withStyles(styles)(EnhancedTable, EnhancedTableToolbar));
+const mapDispatchToProps = (dispatch) => {
+  return {
+    fetchData: () => dispatch(fetchData())
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(EnhancedTable, EnhancedTableToolbar));
