@@ -38,9 +38,9 @@ function createData(company_id, acct_doc_header_id, document_number, business_co
 }
 
 const rows = [
-  { id: 'cust_name', numeric: true, disablePadding: false, label: 'Customer Name' },
-  { id: 'invoice_id', numeric: true, disablePadding: false, label: 'Invoice ID' },
-  { id: 'doc_number', numeric: true, disablePadding: false, label: 'Document Number' },
+  { id: 'cust_name', numeric: true, disablePadding: true, label: 'Customer Name' },
+  { id: 'invoice_id', numeric: true, disablePadding: true, label: 'Invoice ID' },
+  { id: 'doc_number', numeric: true, disablePadding: true, label: 'Document Number' },
   { id: 'predicted_payment_type', numeric: true, disablePadding: false, label: 'Predicted Payment Type' },
   { id: 'predicted_amount', numeric: true, disablePadding: false, label: 'Predicted Amount' },
   { id: 'company_id', numeric: false, disablePadding: true, label: 'Company ID' },
@@ -85,7 +85,7 @@ class EnhancedTableHead extends React.Component {
             row => (
               <TableCell
                 key={row.id}
-                padding="default"
+                padding= {row.disablePadding ? 'none' : 'default'}
                 style={{
                   color: 'lightgrey',
                   fontSize: '0.85em',
@@ -205,7 +205,7 @@ const styles = theme => ({
 
   cells: {
     color: 'white',
-    fontSize: '0.82em',
+    fontSize: '0.8em',
   },
 
   selectIcon: {
@@ -389,8 +389,8 @@ class EnhancedTable extends React.Component {
                         <Checkbox style={{ color: 'white' }} checked={isSelected} />
                       </TableCell>
                       <TableCell className={classes.cells} align="left">{n.customer_name}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.invoice_id}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.document_number}</TableCell>
+                      <TableCell className={classes.cells} align="left">{n.invoice_id}</TableCell>
+                      <TableCell className={classes.cells} align="left">{n.document_number}</TableCell>
                       <TableCell className={classes.cells} align="left">{n.predicted_payment_type}</TableCell>
                       <TableCell className={classes.cells} align="left">{n.predicted_amount}</TableCell>
                       <TableCell className={classes.cells} align="center"> {n.company_id} </TableCell>

@@ -63,34 +63,36 @@ class CustomerDetails extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      ele : this.props.location.state
+      selected: this.props.location.state.selected
     };
   }
 
   render() {
 
-    const { classes } = this.props;
+    const { classes } = this.props
+    const { selected } = this.state
+
     return (
 
       <div className={classes.root}>
-      <Grid container spacing={2}>
+        <Grid container spacing={2}>
 
-        <Grid item xs={12}>
-          <HeaderCD cust ={this.state.ele}/>
+          <Grid item xs={12}>
+            <HeaderCD cust={selected} />
+          </Grid>
+
+          <Grid item xs={12}>
+            <GridCD cust={selected} />
+          </Grid>
+
+          <Grid item xs={12}>
+            <Footer />
+          </Grid>
+
         </Grid>
-
-        <Grid item xs={12}>
-          <GridCD cust = {this.state.ele.ele} />
-        </Grid>
-
-        <Grid item xs={12}>
-          <Footer/>
-        </Grid>
-
-      </Grid>
       </div>
     );
-    }
+  }
 }
 
 export default withStyles(styles, { withTheme: true })(CustomerDetails);

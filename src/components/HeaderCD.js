@@ -52,9 +52,10 @@ class HeaderCD extends Component {
 
   render() {
 
-    const cust_name = this.props.cust.ele[0].toUpperCase()
-    const cust_num = this.props.cust.ele[1]
-    const { classes } = this.props;
+    const { classes,cust } = this.props;
+
+    const cust_name = cust[0].toUpperCase()
+    const cust_num = cust[1]
 
     return (
 

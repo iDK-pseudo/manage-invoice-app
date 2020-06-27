@@ -125,8 +125,6 @@ class SearchPanel extends Component {
       searchResults: 0,
       placeholder: 'Search Customers by Customer Name or Number'
     };
-
-    this.submitEvent = this.submitEvent.bind(this)
   }
 
   static getDerivedStateFromProps(props, state) {
@@ -158,11 +156,11 @@ class SearchPanel extends Component {
     }
   }
 
-  submitEvent(e) {
+  handleSubmit = (e) => {
 
     if (e.key === 'Enter') {
       if (e.target.value.length > 0) {
-        var target = e.target.value
+        var target = e.target.value.toUpperCase()
 
         let filtered_rows = []
         this.state.rows.forEach(row => {
@@ -270,8 +268,10 @@ class SearchPanel extends Component {
   }
 
   render() {
-    const { classes } = this.props;
-    
+    const { classes } = this.props
+    const { found, rows } = this.state
+    const records = found.length === 0 ? rows : found
+
     return (
 
       <Grid container>
@@ -284,7 +284,7 @@ class SearchPanel extends Component {
               placeholder={this.state.placeholder}
               className={classes.input}
               variant="outlined"
-              onKeyDown={this.submitEvent}
+              onKeyDown={this.handleSubmit}
               InputLabelProps={{
                 className: classes.floatingLabelFocusStyle,
               }}
@@ -418,47 +418,23 @@ class SearchPanel extends Component {
                 </TableRow>
               </TableHead>
               <TableBody>
-
-                {this.state.found.length < 1 ? (this.state.rows.map(row => (
+                {records.map(row => (
                   <TableRow key={row.id}>
                     <TableCell>
                       <Button className={classes.button}>
                         <Link style={{ color: 'white', textDecoration: 'none', fontSize: 12, marginLeft: '1.5vw' }}
                           to={{
                             pathname: 'customer-dashboard',
-                            state: { ele: [row.customer_name, row.customer_number] }
+                            state: { selected: [row.customer_name, row.customer_number] }
                           }}>
-
                           {row.customer_name}
-
                         </Link>
                       </Button>
                     </TableCell>
                     <TableCell className={classes.cells}>{row.customer_number}</TableCell>
                     <TableCell align="center" className={classes.cells} >{row.total_open_amount}</TableCell>
                   </TableRow>
-                ))) : (
-                    (this.state.found.map(f => (
-                      <TableRow key={f.id}>
-                        <TableCell>
-                          <Button className={classes.button}>
-                            <Link style={{ color: 'white', textDecoration: 'none', fontSize: 12, marginLeft: '1.5vw' }}
-                              to={{
-                                pathname: 'customer-dashboard',
-                                state: { ele: [f.customer_name, f.customer_number] }
-                              }}>
-
-                              {f.customer_name}
-
-                            </Link>
-                          </Button>
-                        </TableCell>
-                        <TableCell className={classes.cells}>{f.customer_number}</TableCell>
-                        <TableCell className={classes.cells} align="center">{f.total_open_amount}</TableCell>
-                      </TableRow>
-                    )))
-                  )
-                }
+                ))}
               </TableBody>
             </Table>
           </Grid>
