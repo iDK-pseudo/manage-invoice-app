@@ -10,13 +10,15 @@ import SearchPanel from '../components/SearchPanel'
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import crossfilter from 'crossfilter2';
+import { connect } from 'react-redux'
+import LinearProgress from '@material-ui/core/LinearProgress';
 
 const styles = (theme) => ({
   root: {
     flexGrow: 1,
     paddingLeft: '1vw',
     paddingRight: '1vw',
-    
+
   },
 
   chart: {
@@ -31,53 +33,47 @@ class CollectorDashboard extends Component {
     this.state = {
       data: [],
       selected: '',
-      total_cust_count : 2091,
-      total_open_ar : '$ 43M',
-      avg_days_past : '3 Days',
-      total_open_invoices : 37438
+      total_cust_count: 2091,
+      total_open_ar: '$ 43M',
+      avg_days_past: '3 Days',
+      total_open_invoices: 37438
     };
     this.updateData = this.updateData.bind(this)
   }
 
 
-  componentDidMount() {
-
-    axios.get("http://localhost:8080/1706592/dummy.do?")
-      .then(response => {
-        this.setState({ data: response.data })
-      })
-
-      .catch(error => {
-        console.log(error)
-      })
-  }
-
-  updateData(selected){
-
-    if(selected.length > 0)
-      {
-        let dataCross = crossfilter(this.state.data);
-        let businessCode = dataCross.dimension(d => d.business_code)
-
-        let businessCodeFilter =dataCross.dimension(d => d.business_code).filter(selected)
-        console.log(businessCodeFilter)
-
-        let totalCust = businessCode.group().reduceCount()
-        let totalOpenAmount = businessCode.group().reduceSum(d=>d.total_open_amount)
-        let totalOpenInvoices = businessCode.group().reduceSum(d=>d.isOpen)
-        let avgDaysPastDue = businessCode.group().reduceSum(d=>d.dayspast_due)
-
-        let avgDays = Math.round(avgDaysPastDue.top(1)[0].value/businessCode.group().top(1)[0].value)
-
-        this.setState({
-          selected : selected,
-          total_cust_count :totalCust.top(1)[0].value,
-          total_open_ar:'$ '.concat(Math.round(totalOpenAmount.top(1)[0].value).toString()),
-          avg_days_past : avgDays.toString().concat(' Days'),
-          total_open_invoices : totalOpenInvoices.top(1)[0].value
-        })
+  static getDerivedStateFromProps(props, state) {
+    if (state.data.length === 0) {
+      return {
+        data: props.data
       }
     }
+  }
+
+  updateData(selected) {
+
+    if (selected.length > 0) {
+      let dataCross = crossfilter(this.state.data);
+      let businessCode = dataCross.dimension(d => d.business_code)
+
+      let businessCodeFilter = dataCross.dimension(d => d.business_code).filter(selected)
+
+      let totalCust = businessCode.group().reduceCount()
+      let totalOpenAmount = businessCode.group().reduceSum(d => d.total_open_amount)
+      let totalOpenInvoices = businessCode.group().reduceSum(d => d.isOpen)
+      let avgDaysPastDue = businessCode.group().reduceSum(d => d.dayspast_due)
+
+      let avgDays = Math.round(avgDaysPastDue.top(1)[0].value / businessCode.group().top(1)[0].value)
+
+      this.setState({
+        selected: selected,
+        total_cust_count: totalCust.top(1)[0].value,
+        total_open_ar: '$ '.concat(Math.round(totalOpenAmount.top(1)[0].value).toString()),
+        avg_days_past: avgDays.toString().concat(' Days'),
+        total_open_invoices: totalOpenInvoices.top(1)[0].value
+      })
+    }
+  }
 
 
   render() {
@@ -113,7 +109,7 @@ class CollectorDashboard extends Component {
       chart: {
         type: 'bar',
         height: '40%',
-        backgroundColor : '#262f52',
+        backgroundColor: '#262f52',
         scrollablePlotArea: {
           minHeight: 1500
         },
@@ -123,14 +119,14 @@ class CollectorDashboard extends Component {
         text: 'Total Amount by Company Code',
         style: {
           color: 'lightgrey',
-          fontFamily : 'Arial',
-          fontSize : '1.5em'
+          fontFamily: 'Arial',
+          fontSize: '1.5em'
         },
-        align : 'center',
+        align: 'center',
       },
 
-      tooltip : {
-        enabled : false,
+      tooltip: {
+        enabled: false,
       },
 
       plotOptions: {
@@ -141,14 +137,13 @@ class CollectorDashboard extends Component {
                 this.select(null, false)
                 var selectedPoints = this.series.chart.getSelectedPoints()
 
-                if(selectedPoints.length === 0 )
-                {
+                if (selectedPoints.length === 0) {
                   self.setState({
-                    total_cust_count : 2091,
-                    total_open_ar : '$ 43M',
-                    avg_days_past : '3 Days',
-                    total_open_invoices : 37438,
-                    selected : 'deactivate'
+                    total_cust_count: 2091,
+                    total_open_ar: '$ 43M',
+                    avg_days_past: '3 Days',
+                    total_open_invoices: 37438,
+                    selected: 'deactivate'
                   })
                 }
 
@@ -158,10 +153,10 @@ class CollectorDashboard extends Component {
             },
           },
 
-          states : {
-            select : {
-              color : '#42aaeb',
-              borderColor : '#42aaeb'
+          states: {
+            select: {
+              color: '#42aaeb',
+              borderColor: '#42aaeb'
             }
           }
         }
@@ -172,8 +167,8 @@ class CollectorDashboard extends Component {
         labels: {
           style: {
             color: 'white',
-            fontFamily : 'Helvetica',
-            fontSize : '1.2em'
+            fontFamily: 'Helvetica',
+            fontSize: '1.2em'
           },
         }
       },
@@ -198,7 +193,7 @@ class CollectorDashboard extends Component {
         data: firstObject.data,
         label: false,
         color: 'lightgrey',
-        borderColor : 'lightgrey' 
+        borderColor: 'lightgrey'
       }]
     }
 
@@ -210,38 +205,56 @@ class CollectorDashboard extends Component {
       <div className={classes.root}>
         <Grid container spacing={2}>
 
-          <Grid item xs={12}>
-            <Header />
-          </Grid>
-
-          <Grid item xs={12}>
-            <ArStats autoid = "total-customers-text-collector" name="Total Customers" count={this.state.total_cust_count} />
-            <ArStats autoid = "total-open-ar-text-collector" name="Total Open AR" count={this.state.total_open_ar} />
-            <ArStats autoid = "average-days-delay-text-collector" name="Average Days Delay" count={this.state.avg_days_past} />
-            <ArStats autoid = "total-open-invoice-text-collector" name="Total Open Invoices" count={this.state.total_open_invoices} />
-          </Grid>
-
-          <Grid container xs={5} direction="column">
-            <Grid item>
-              <div autoid = "companycode-chart" className={classes.chart}>
-                <HighchartsReact highcharts={Highcharts}
-                  options={options}
-                />
-              </div>
+          {this.state.data.length === 0 &&
+            <Grid item xs={12}>
+              <LinearProgress />
             </Grid>
-            <Grid item>
-              <SearchPanel />
-            </Grid>
-          </Grid>
+          }
 
-          <Grid item xs={7}>
-            <Invoice founded = {this.state.selected}/>
-            <Footer/>
-          </Grid>
+          {this.state.data.length > 0 &&
+            <React.Fragment>
+              <Grid item xs={12}>
+                <Header />
+              </Grid>
+
+              <Grid item xs={12}>
+                <ArStats autoid="total-customers-text-collector" name="Total Customers" count={this.state.total_cust_count} />
+                <ArStats autoid="total-open-ar-text-collector" name="Total Open AR" count={this.state.total_open_ar} />
+                <ArStats autoid="average-days-delay-text-collector" name="Average Days Delay" count={this.state.avg_days_past} />
+                <ArStats autoid="total-open-invoice-text-collector" name="Total Open Invoices" count={this.state.total_open_invoices} />
+              </Grid>
+
+              <React.Fragment>
+                <Grid container xs={5} direction="column">
+                  <Grid item>
+                    <div autoid="companycode-chart" className={classes.chart}>
+                      <HighchartsReact highcharts={Highcharts}
+                        options={options}
+                      />
+                    </div>
+                  </Grid>
+                  <Grid item>
+                    <SearchPanel />
+                  </Grid>
+                </Grid>
+
+                <Grid item xs={7}>
+                  <Invoice founded={this.state.selected} />
+                  <Footer />
+                </Grid>
+              </React.Fragment>
+            </React.Fragment>}
         </Grid>
+
       </div>
     );
   }
 }
 
-export default withStyles(styles, { withTheme: true })(CollectorDashboard);
+const mapStateToProps = (state) => {
+  return {
+    data: state.data
+  }
+}
+
+export default connect(mapStateToProps)(withStyles(styles, { withTheme: true })(CollectorDashboard));

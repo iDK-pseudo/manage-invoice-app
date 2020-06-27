@@ -14,7 +14,6 @@ import { Link } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import Input from '@material-ui/core/Input';
 import SearchIcon from '@material-ui/icons/Search';
-import LinearProgress from '@material-ui/core/LinearProgress';
 import searchIcon from '../assets/attach_money.svg'
 import MenuItem from '@material-ui/core/MenuItem';
 import Typography from '@material-ui/core/Typography';
@@ -24,7 +23,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import CloseIcon from '@material-ui/icons/Close';
 import IconButton from '@material-ui/core/IconButton';
-
+import { connect } from 'react-redux'
 
 
 const styles = theme => ({
@@ -130,39 +129,33 @@ class SearchPanel extends Component {
     this.submitEvent = this.submitEvent.bind(this)
   }
 
-  componentDidMount() {
+  static getDerivedStateFromProps(props, state) {
 
-    const m = new Map();
-    const filteredData = []
+    if (state.rows.length === 0) {
+      const m = new Map();
+      const filteredData = []
 
-    axios.get("http://localhost:8080/1706592/dummy.do?")
-      .then(response => {
-        for (const item of response.data) {
-          if (!m.has(item.customer_name)) {
-            m.set(item.customer_name, [item.customer_number, item.total_open_amount]);
-          }
-
-          else {
-            let curr_total = m.get(item.customer_name)[1]
-            m.set(item.customer_name, [item.customer_number, item.total_open_amount + curr_total])
-          }
+      for (const item of props.data) {
+        if (!m.has(item.customer_name)) {
+          m.set(item.customer_name, [item.customer_number, item.total_open_amount]);
         }
 
-        for (const record of m) {
-          filteredData.push({
-            customer_name: record[0],
-            customer_number: record[1][0],
-            total_open_amount: Math.round(record[1][1])
-          })
+        else {
+          let curr_total = m.get(item.customer_name)[1]
+          m.set(item.customer_name, [item.customer_number, item.total_open_amount + curr_total])
         }
-
-        this.setState({ rows: filteredData })
       }
-      )
 
-      .catch(error => {
-        console.log(error)
-      })
+      for (const record of m) {
+        filteredData.push({
+          customer_name: record[0],
+          customer_number: record[1][0],
+          total_open_amount: Math.round(record[1][1])
+        })
+      }
+
+      return { rows: filteredData }
+    }
   }
 
   submitEvent(e) {
@@ -180,7 +173,7 @@ class SearchPanel extends Component {
 
         if (filtered_rows.length === 0)
           filtered_rows = [{ customer_name: 'NA', customer_number: 0, total_open_amount: 0 }]
-          
+
         this.setState({ found: filtered_rows });
       }
 
@@ -278,11 +271,7 @@ class SearchPanel extends Component {
 
   render() {
     const { classes } = this.props;
-
-    if (this.state.rows.length === 0) {
-      return (<LinearProgress style={{ color: 'white' }} />)
-    }
-
+    
     return (
 
       <Grid container>
@@ -483,4 +472,9 @@ SearchPanel.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(SearchPanel);
+const mapStateToProps = (state) => {
+  return {
+    data: state.data
+  }
+}
+export default connect(mapStateToProps)(withStyles(styles)(SearchPanel));

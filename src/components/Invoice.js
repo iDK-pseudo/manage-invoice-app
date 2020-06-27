@@ -14,7 +14,7 @@ import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
 import axios from 'axios';
-import LinearProgress from '@material-ui/core/LinearProgress';
+import { connect } from 'react-redux';
 
 
 let counter = 0;
@@ -166,7 +166,7 @@ let EnhancedTableToolbar = props => {
           autoid="predict-button"
           disabled={disable}
           variant="contained"
-          onClick={self.getData}
+          onClick={self.handlePredict}
           size="small"
           className={classes.button}>
           Predict
@@ -227,32 +227,19 @@ class EnhancedTable extends React.Component {
       founded: '',
       backup_data: []
     };
-    this.getData = this.getData.bind(this);
-  }
-
-  componentDidMount() {
-
-    const rows = []
-
-    axios.get("http://localhost:8080/1706592/dummy.do?")
-      .then(response => {
-        response.data.forEach(ele => {
-          rows.push(createData(ele.company_id, ele.acct_doc_header_id, ele.document_number, ele.business_code,
-            ele.doctype, ele.customer_number, ele.fk_customer_map_id, ele.customer_name.toUpperCase(), ele.document_create_date,
-            ele.baseline_create_date, ele.invoice_date_norm, ele.invoice_id, ele.total_open_amount, ele.cust_payment_terms,
-            ele.clearing_date, ele.isOpen, ele.ship_date, ele.paid_amount, ele.dayspast_due, ele.document_id,
-            ele.actual_open_amount, ele.invoice_age, ele.invoice_amount_doc_currency))
-        });
-
-        this.setState({ data: rows, backup_data: rows })
-      })
-
-      .catch(error => {
-        console.log(error)
-      })
+    this.handlePredict = this.handlePredict.bind(this);
   }
 
   static getDerivedStateFromProps(props, state) {
+
+    if(state.data.length === 0)
+    {
+      return {
+        data : props.data,
+        backup_data : props.data
+      }
+    }
+
     const new_records = []
 
     if (state.selected.length > 0 && props.founded !== 'deactivate')
@@ -280,7 +267,7 @@ class EnhancedTable extends React.Component {
     }
   }
 
-  getData() {
+  handlePredict() {
     const record = this.state.selected_record
 
     if (record.length > 0) {
@@ -323,20 +310,20 @@ class EnhancedTable extends React.Component {
 
   handleSelectAllClick = event => {
     if (event.target.checked) {
-      this.setState(state => ({ selected: state.data.map(n => n.id), selected_record: this.state.data }));
+      this.setState(state => ({ selected: state.data.map(n => n.pk_id), selected_record: this.state.data }));
       return;
     }
     this.setState({ selected: [], selected_record: [] });
   };
 
-  handleClick = (event, id, data) => {
+  handleClick = (event, pk_id, data) => {
 
     const { selected } = this.state;
-    const selectedIndex = selected.indexOf(id);
+    const selectedIndex = selected.indexOf(pk_id);
     let newSelected = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
+      newSelected = newSelected.concat(selected, pk_id);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -351,7 +338,7 @@ class EnhancedTable extends React.Component {
     if (selectedIndex === -1)
       this.setState({ selected: newSelected, selected_record: this.state.selected_record.concat([data]) });
     else {
-      const newSelectedRecords = this.state.selected_record.filter((item) => item.id !== id);
+      const newSelectedRecords = this.state.selected_record.filter((item) => item.pk_id !== pk_id);
       this.setState({ selected: newSelected, selected_record: newSelectedRecords })
     }
   };
@@ -364,18 +351,13 @@ class EnhancedTable extends React.Component {
     this.setState({ rowsPerPage: event.target.value });
   };
 
-  isSelected = id => this.state.selected.indexOf(id) !== -1;
+  isSelected = pk_id => this.state.selected.indexOf(pk_id) !== -1;
 
   render() {
 
     const { classes } = this.props;
     const { data, order, orderBy, selected, rowsPerPage, page } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
-
-    if (this.state.data.length === 0) {
-      return (<LinearProgress style={{ color: 'white' }} />)
-    }
-
 
     return (
       <Paper autoid="invoice-table-collector" className={classes.root}>
@@ -392,15 +374,15 @@ class EnhancedTable extends React.Component {
             <TableBody>
               {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map(n => {
-                  const isSelected = this.isSelected(n.id);
+                  const isSelected = this.isSelected(n.pk_id);
                   return (
                     <TableRow
                       hover
-                      onClick={event => this.handleClick(event, n.id, n)}
+                      onClick={event => this.handleClick(event, n.pk_id, n)}
                       role="checkbox"
                       aria-checked={isSelected}
                       tabIndex={-1}
-                      key={n.id}
+                      key={n.pk_id}
                       selected={isSelected}
                     >
                       <TableCell padding="checkbox">
@@ -469,4 +451,10 @@ EnhancedTable.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(EnhancedTable);
+const mapStateToProps = (state) => {
+  return { 
+    data : state.data
+  }
+}
+
+export default connect(mapStateToProps)(withStyles(styles)(EnhancedTable));

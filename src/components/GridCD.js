@@ -18,6 +18,7 @@ import Modify from './Modify';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { CSVLink } from "react-csv";
 import Grid from '@material-ui/core/Grid';
+import { connect } from 'react-redux'
 
 const rows = [
   { id: 'company_id', numeric: false, disablePadding: true, label: 'Company ID' },
@@ -155,7 +156,7 @@ class EnhancedTableToolbar extends Component {
               {numSelected === 1 ? (
 
                 <div style={{ float: 'left', marginTop: 15 }}>
-                  <Modify 
+                  <Modify
                     open='true'
                     curr_doctype={doctype}
                     curr_openamt={openamt}
@@ -251,217 +252,214 @@ class EnhancedTable extends React.Component {
     };
   }
 
-  componentDidMount() {
+  static getDerivedStateFromProps(props, state) {
 
-    const cust_num = this.props.cust[1]
-    const rows = []
-    var amount = 0
-    var invoices = 0
+    if (state.data.length === 0) {
+      console.log('in grid', props)
+      const cust_num = props.cust[1]
+      const rows = []
+      let amount = 0
+      let invoices = 0
 
-    axios.get("http://localhost:8080/1706592/dummy.do?")
-      .then(response => {
-        response.data.forEach(ele => {
-          if (ele.customer_number === cust_num) {
-            amount += ele.total_open_amount
-            
-            if (ele.isOpen === 1)
-              invoices++
+      props.data.forEach(ele => {
+        if (ele.customer_number === cust_num) {
+          amount += ele.total_open_amount
 
-            rows.push(ele)
-          }
-        });
+          if (ele.isOpen === 1)
+            invoices++
 
-        this.setState({
-          data: rows, selected_id: 0, prev_selected: 0, selected: [],
-          open_invoices: invoices, open_amount: Math.round(amount)
-        })
+          rows.push(ele)
+        }
       })
 
-      .catch(error => {
-        console.log(error)
-      })
-
+      return {
+        data: rows, selected_id: 0, prev_selected: 0, selected: [],
+        open_invoices: invoices, open_amount: Math.round(amount)
+      }
+    }
   }
 
-  handleSelectAllClick = event => {
-    if (event.target.checked) {
-      this.setState(state => ({
-        selected: state.data.map(n => n.pk_id),
-        selected_records: this.state.data
-      }));
-      return;
-    }
-    this.setState({ selected: [], selected_records: [] });
-  };
+    handleSelectAllClick = event => {
+      if (event.target.checked) {
+        this.setState(state => ({
+          selected: state.data.map(n => n.pk_id),
+          selected_records: this.state.data
+        }));
+        return;
+      }
+      this.setState({ selected: [], selected_records: [] });
+    };
 
-  handleClick = (event, pk_id, data) => {
-    const { selected } = this.state;
-    const selectedIndex = selected.indexOf(pk_id);
-    let newSelected = [];
+    handleClick = (event, pk_id, data) => {
+      const { selected } = this.state;
+      const selectedIndex = selected.indexOf(pk_id);
+      let newSelected = [];
 
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, pk_id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
+      if (selectedIndex === -1) {
+        newSelected = newSelected.concat(selected, pk_id);
+      } else if (selectedIndex === 0) {
+        newSelected = newSelected.concat(selected.slice(1));
+      } else if (selectedIndex === selected.length - 1) {
+        newSelected = newSelected.concat(selected.slice(0, -1));
+      } else if (selectedIndex > 0) {
+        newSelected = newSelected.concat(
+          selected.slice(0, selectedIndex),
+          selected.slice(selectedIndex + 1),
+        );
+      }
+
+      if (event.target.checked) {
+        this.setState({
+          selected: newSelected,
+          prev_selected: this.state.selected_id,
+          selected_id: pk_id,
+          selected_records: this.state.selected_records.concat([data])
+        });
+      }
+      else {
+        let final_selected = []
+        final_selected = this.state.selected_records.filter(e => {
+          if (e.pk_id !== pk_id)
+            return e
+          return null
+        })
+
+        if (selected.length - 1 === 0)
+          final_selected = []
+
+        if (this.state.prev_selected === pk_id)
+          this.setState({
+            selected: newSelected,
+            prev_selected: 0,
+            selected_records: final_selected
+          });
+
+        else
+          this.setState({
+            selected: newSelected,
+            selected_id: this.state.prev_selected,
+            prev_selected: 0,
+            selected_records: final_selected
+          })
+      }
+    };
+
+    handleChangePage = (event, page) => {
+      this.setState({ page });
+    };
+
+    handleChangeRowsPerPage = event => {
+      this.setState({ rowsPerPage: event.target.value });
+    };
+
+    isSelected = id => this.state.selected.indexOf(id) !== -1;
+
+    render() {
+      const { classes } = this.props;
+      const { selected, data, page, rowsPerPage, selected_id, open_amount, open_invoices, selected_records } = this.state;
+      const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
+
+      return (
+        <Paper className={classes.root} autoid="invoice-table-customer" >
+          <EnhancedTableToolbar
+            numSelected={selected.length}
+            data={data}
+            id={selected_id}
+            curr_state={this}
+            selected_records={selected_records}
+            amount={open_amount}
+            invoices={open_invoices}
+          />
+
+          <div className={classes.tableWrapper}>
+            <Table className={classes.table} aria-labelledby="tableTitle">
+              <EnhancedTableHead
+                numSelected={selected.length}
+                onSelectAllClick={this.handleSelectAllClick}
+                rowCount={data.length}
+              />
+              <TableBody>
+                {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map(n => {
+                    const isSelected = this.isSelected(n.pk_id);
+                    return (
+                      <TableRow
+                        hover
+                        onClick={event => this.handleClick(event, n.pk_id, n)}
+                        role="checkbox"
+                        aria-checked={isSelected}
+                        tabIndex={-1}
+                        key={n.pk_id}
+                        selected={isSelected}
+                      >
+                        <TableCell padding="checkbox">
+                          <Checkbox style={{ color: 'white' }} checked={isSelected} />
+                        </TableCell>
+                        <TableCell className={classes.cells} align="center"> {n.company_id} </TableCell>
+                        <TableCell className={classes.cells} align="right">{n.acct_doc_header_id}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.document_number}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.business_code}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.doctype}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.customer_number}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.fk_customer_map_id}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.customer_name}</TableCell>
+                        <TableCell className={classes.cells} padding="none">{n.document_create_date}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.baseline_create_date}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.invoice_date_norm}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.invoice_id}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.total_open_amount}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.cust_payment_terms}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.clearing_date}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.isOpen}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.ship_date}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.paid_amount}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.dayspast_due}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.document_id}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.actual_open_amount}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.invoice_age}</TableCell>
+                        <TableCell className={classes.cells} align="right">{n.invoice_amount_doc_currency}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                {emptyRows > 0 && (
+                  <TableRow style={{ height: 49 * emptyRows }}>
+                    <TableCell colSpan={6} />
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <TablePagination
+            autoid="invoice-table-pagination-customer"
+            style={{ height: 50, color: 'white' }}
+            rowsPerPageOptions={[6, 10, 20]}
+            component="div"
+            count={data.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            backIconButtonProps={{
+              'aria-label': 'Previous Page',
+            }}
+            nextIconButtonProps={{
+              'aria-label': 'Next Page',
+            }}
+            onChangePage={this.handleChangePage}
+            onChangeRowsPerPage={this.handleChangeRowsPerPage}
+          />
+        </Paper>
       );
     }
-
-    if (event.target.checked) {
-      this.setState({
-        selected: newSelected,
-        prev_selected: this.state.selected_id,
-        selected_id: pk_id,
-        selected_records: this.state.selected_records.concat([data])
-      });
-    }
-    else {
-      let final_selected = []
-      final_selected = this.state.selected_records.filter(e => {
-        if (e.pk_id !== pk_id)
-          return e
-        return null
-      })
-
-      if (selected.length - 1 === 0)
-        final_selected = []
-
-      if (this.state.prev_selected === pk_id)
-        this.setState({
-          selected: newSelected,
-          prev_selected: 0,
-          selected_records: final_selected
-        });
-
-      else
-        this.setState({
-          selected: newSelected,
-          selected_id: this.state.prev_selected,
-          prev_selected: 0,
-          selected_records: final_selected
-        })
-    }
-  };
-
-  handleChangePage = (event, page) => {
-    this.setState({ page });
-  };
-
-  handleChangeRowsPerPage = event => {
-    this.setState({ rowsPerPage: event.target.value });
-  };
-
-  isSelected = id => this.state.selected.indexOf(id) !== -1;
-
-  render() {
-    const { classes } = this.props;
-    const { selected, data, page, rowsPerPage, selected_id, open_amount, open_invoices, selected_records } = this.state;
-    const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
-
-    if (this.state.data.length === 0) {
-      return (<LinearProgress style={{ color: 'white' }} />);
-    }
-
-    return (
-      <Paper className={classes.root} autoid="invoice-table-customer" >
-        <EnhancedTableToolbar
-          numSelected={selected.length}
-          data={data}
-          id={selected_id}
-          curr_state={this}
-          selected_records={selected_records}
-          amount={open_amount}
-          invoices={open_invoices}
-        />
-
-        <div className={classes.tableWrapper}>
-          <Table className={classes.table} aria-labelledby="tableTitle">
-            <EnhancedTableHead
-              numSelected={selected.length}
-              onSelectAllClick={this.handleSelectAllClick}
-              rowCount={data.length}
-            />
-            <TableBody>
-              {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map(n => {
-                  const isSelected = this.isSelected(n.pk_id);
-                  return (
-                    <TableRow
-                      hover
-                      onClick={event => this.handleClick(event, n.pk_id, n)}
-                      role="checkbox"
-                      aria-checked={isSelected}
-                      tabIndex={-1}
-                      key={n.pk_id}
-                      selected={isSelected}
-                    >
-                      <TableCell padding="checkbox">
-                        <Checkbox style={{ color: 'white' }} checked={isSelected} />
-                      </TableCell>
-                      <TableCell className={classes.cells} align="center"> {n.company_id} </TableCell>
-                      <TableCell className={classes.cells} align="right">{n.acct_doc_header_id}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.document_number}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.business_code}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.doctype}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.customer_number}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.fk_customer_map_id}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.customer_name}</TableCell>
-                      <TableCell className={classes.cells} padding="none">{n.document_create_date}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.baseline_create_date}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.invoice_date_norm}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.invoice_id}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.total_open_amount}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.cust_payment_terms}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.clearing_date}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.isOpen}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.ship_date}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.paid_amount}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.dayspast_due}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.document_id}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.actual_open_amount}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.invoice_age}</TableCell>
-                      <TableCell className={classes.cells} align="right">{n.invoice_amount_doc_currency}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: 49 * emptyRows }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        <TablePagination
-          autoid="invoice-table-pagination-customer"
-          style={{ height: 50, color: 'white' }}
-          rowsPerPageOptions={[6, 10, 20]}
-          component="div"
-          count={data.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          backIconButtonProps={{
-            'aria-label': 'Previous Page',
-          }}
-          nextIconButtonProps={{
-            'aria-label': 'Next Page',
-          }}
-          onChangePage={this.handleChangePage}
-          onChangeRowsPerPage={this.handleChangeRowsPerPage}
-        />
-      </Paper>
-    );
   }
-}
 
-EnhancedTable.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
+  EnhancedTable.propTypes = {
+    classes: PropTypes.object.isRequired,
+  };
 
-export default withStyles(styles)(EnhancedTable, EnhancedTableToolbar);
+  const mapStateToProps = (state) => {
+    return {
+      data: state.data
+    }
+  }
+
+  export default connect(mapStateToProps)(withStyles(styles)(EnhancedTable, EnhancedTableToolbar));
