@@ -246,6 +246,7 @@ class EnhancedTable extends React.Component {
 
   handleReRender = (open, doc, id) => {
     let new_open_amt = 0
+  
     this.state.data.forEach(d => {
       if (d.pk_id === id) {
         d.total_open_amount = parseInt(open)

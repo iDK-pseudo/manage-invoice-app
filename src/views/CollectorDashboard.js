@@ -12,6 +12,7 @@ import HighchartsReact from 'highcharts-react-official';
 import crossfilter from 'crossfilter2';
 import { connect } from 'react-redux'
 import LinearProgress from '@material-ui/core/LinearProgress';
+import HighCharts from '../components/HighCharts'
 
 const styles = (theme) => ({
   root: {
@@ -19,11 +20,6 @@ const styles = (theme) => ({
     paddingLeft: '1vw',
     paddingRight: '1vw',
 
-  },
-
-  chart: {
-    width: '97%',
-    marginTop: 5,
   },
 });
 
@@ -38,7 +34,6 @@ class CollectorDashboard extends Component {
       avg_days_past: '3 Days',
       total_open_invoices: 37438
     };
-    this.updateData = this.updateData.bind(this)
   }
 
 
@@ -50,7 +45,7 @@ class CollectorDashboard extends Component {
     }
   }
 
-  updateData(selected) {
+  handleUpdateData = (selected) => {
 
     if (selected.length > 0) {
       let dataCross = crossfilter(this.state.data);
@@ -73,132 +68,21 @@ class CollectorDashboard extends Component {
         total_open_invoices: totalOpenInvoices.top(1)[0].value
       })
     }
+
+    else {
+      this.setState({
+        total_cust_count: 2091,
+        total_open_ar: '$ 43M',
+        avg_days_past: '3 Days',
+        total_open_invoices: 37438,
+        selected: 'deactivate'
+      })
+    }
   }
 
 
   render() {
     const { classes } = this.props;
-
-    // Analytics  
-
-    var dataCross = crossfilter(this.state.data);
-    var businessCode = dataCross.dimension(d => d.business_code)
-    var groupBusinessCode = businessCode.group().reduceSum(d => d.actual_open_amount)
-
-    function prepareDataForHighChart(groups) {
-      var categories = [];
-      var data = [];
-      var group_data = groups.top(Infinity);
-
-      group_data.forEach(d => {
-        categories.push(d.key);
-        data.push(d.value);
-      })
-
-      return {
-        categories: categories,
-        data: data
-      }
-    }
-
-    var firstObject = prepareDataForHighChart(groupBusinessCode)
-
-    let self = this
-
-    const options = {
-      chart: {
-        type: 'bar',
-        height: '40%',
-        backgroundColor: '#262f52',
-        scrollablePlotArea: {
-          minHeight: 1500
-        },
-      },
-
-      title: {
-        text: 'Total Amount by Company Code',
-        style: {
-          color: 'lightgrey',
-          fontFamily: 'Arial',
-          fontSize: '1.5em'
-        },
-        align: 'center',
-      },
-
-      tooltip: {
-        enabled: false,
-      },
-
-      plotOptions: {
-        series: {
-          point: {
-            events: {
-              click: function () {
-                this.select(null, false)
-                var selectedPoints = this.series.chart.getSelectedPoints()
-
-                if (selectedPoints.length === 0) {
-                  self.setState({
-                    total_cust_count: 2091,
-                    total_open_ar: '$ 43M',
-                    avg_days_past: '3 Days',
-                    total_open_invoices: 37438,
-                    selected: 'deactivate'
-                  })
-                }
-
-                else
-                  self.updateData(selectedPoints[0].category)
-              },
-            },
-          },
-
-          states: {
-            select: {
-              color: '#42aaeb',
-              borderColor: '#42aaeb'
-            }
-          }
-        }
-      },
-
-      xAxis: {
-        categories: firstObject.categories,
-        labels: {
-          style: {
-            color: 'white',
-            fontFamily: 'Helvetica',
-            fontSize: '1.2em'
-          },
-        }
-      },
-      yAxis: {
-        labels: {
-          enabled: false
-        },
-        title: {
-          enabled: false,
-        },
-        gridLineColor: null
-      },
-      credits: {
-        enabled: false
-      },
-
-      legend: {
-        enabled: false
-      },
-
-      series: [{
-        data: firstObject.data,
-        label: false,
-        color: 'lightgrey',
-        borderColor: 'lightgrey'
-      }]
-    }
-
-
-    ////// END
 
     return (
 
@@ -227,11 +111,7 @@ class CollectorDashboard extends Component {
               <React.Fragment>
                 <Grid container xs={5} direction="column">
                   <Grid item>
-                    <div autoid="companycode-chart" className={classes.chart}>
-                      <HighchartsReact highcharts={Highcharts}
-                        options={options}
-                      />
-                    </div>
+                    <HighCharts updateData={this.handleUpdateData} />
                   </Grid>
                   <Grid item>
                     <SearchPanel />

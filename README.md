@@ -1,68 +1,53 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project was created during my Summer Internship at **Highradius2020©**
 
-## Available Scripts
+# Invoice Management Application
 
-In the project directory, you can run:
 
-### `yarn start`
+Invoice Management Application is made to assist an Account Receivables Analyst in his/her day to day life. It does so by keeping track of the Customer Data provided and analyzing that data to gain insights. 
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Features
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+This applications has various functionalities to support the work of AR Analyst. These include - 
 
-### `yarn test`
+1. **Account Receivables Statistics** - For a particular *Business*, the analyst can obtain details like 
+	* Total Customers
+	* Total Open Account Receivables
+	* Average Days Delay for Full Payment
+	* Total Open Invoices
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+2. **Analytics** - The Data of Businesses represented graphically *(bar chart)* according to their Total Open Amount. In this chart - 
+	* Selecting a particular Bar of the chart will  show the details regarding that Business throughout the UI
 
-### `yarn build`
+3. **Invoice Table** - A table containing the Invoice Details for all the customers. It can also
+	* Filter data based on a Selected Business
+	* Predict the first payment amount for a particular Invoice
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+4. **Search Panel** - A utility search panel to help search for customers and  quickly navigate to a second screen to show the details for that Customer only
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+## Technologies
+This app was made using -
+* React v0.1.0
+* JSX
+* EcmaScript6
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Installation
 
-### `yarn eject`
+To install this application
+,
+clone this repository using -
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+` git clone https://github.com/iDK-pseudo/manage-invoice-app.git`
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Download [Node JS](https://nodejs.org/en/) 
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Execution 
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+Simply open your terminal, navigate to your project folder and enter 
+` npm start` to run the app
 
-## Learn More
+## Creator
+* [Shivam Sharma](https://github.com/iDK-pseudo)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Inspiration
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `yarn build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+This project was made during my Summer Internship in HighRadius 2020©.
