@@ -16,27 +16,6 @@ import Button from '@material-ui/core/Button';
 import axios from 'axios';
 import { connect } from 'react-redux';
 
-
-let counter = 0;
-let predicted_amount = 0;
-let predicted_payment_type = 'NA'
-function createData(company_id, acct_doc_header_id, document_number, business_code, doctype, customer_number,
-  fk_customer_map_id, customer_name, document_create_date, baseline_create_date,
-  invoice_date_norm, invoice_id, total_open_amount, cust_payment_terms,
-  clearing_date, isOpen, ship_date, paid_amount, dayspast_due, document_id,
-  actual_open_amount, invoice_age, invoice_amount_doc_currency) {
-
-  counter += 1;
-
-  return {
-    id: counter, company_id, acct_doc_header_id, document_number, business_code, doctype, customer_number,
-    fk_customer_map_id, customer_name, document_create_date, baseline_create_date,
-    invoice_date_norm, invoice_id, total_open_amount, cust_payment_terms,
-    clearing_date, isOpen, ship_date, paid_amount, dayspast_due, document_id,
-    actual_open_amount, invoice_age, invoice_amount_doc_currency, predicted_amount, predicted_payment_type
-  };
-}
-
 const rows = [
   { id: 'cust_name', numeric: true, disablePadding: true, label: 'Customer Name' },
   { id: 'invoice_id', numeric: true, disablePadding: true, label: 'Invoice ID' },

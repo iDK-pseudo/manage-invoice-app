@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
-import axios from 'axios';
 import Header from '../components/Header';
 import ArStats from '../components/ArStats';
 import Invoice from '../components/Invoice';
 import Footer from '../components/Footer';
 import SearchPanel from '../components/SearchPanel'
-import Highcharts from 'highcharts';
-import HighchartsReact from 'highcharts-react-official';
 import crossfilter from 'crossfilter2';
 import { connect } from 'react-redux'
 import LinearProgress from '@material-ui/core/LinearProgress';

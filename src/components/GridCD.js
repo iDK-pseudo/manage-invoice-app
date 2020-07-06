@@ -13,7 +13,6 @@ import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
-import axios from 'axios';
 import Modify from './Modify';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { CSVLink } from "react-csv";
