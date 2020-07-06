@@ -26,24 +26,44 @@ This applications has various functionalities to support the work of AR Analyst.
 
 ## Technologies
 This app was made using -
-* React v0.1.0
-* JSX
-* EcmaScript6
+* React
+	* JSX
+	* EcmaScript6 
+* Java
+	* Servlets
+* Python
+	* Flask Framework
+	* Machine Learning
+
+## Prerequisites
+
+1. [Node JS](https://nodejs.org/en/)
+2. [Python](https://www.python.org/downloads/) 
+3. [JavaSE](https://www.oracle.com/in/java/technologies/javase/javase-downloads.html)
+4. [Visual Studio Code](https://code.visualstudio.com/) or any other IDE
+5. [Eclipse](https://www.eclipse.org/downloads/) or any other Java IDE 
+6. [Apache Tomcat](http://tomcat.apache.org/)
+
 
 ## Installation
 
 To install this application
-,
-clone this repository using -
 
-` git clone https://github.com/iDK-pseudo/manage-invoice-app.git`
+1. Clone this repository using - `git clone https://github.com/iDK-pseudo/manage-invoice-app.git`
 
-Download [Node JS](https://nodejs.org/en/) 
+Run the following commands in a Terminal - 
+* `pip install Flask`
+* `pip install -U flask-cors`
+* `npm i`
 
 ## Execution 
 
-Simply open your terminal, navigate to your project folder and enter 
-` npm start` to run the app
+1. Open your Java Servlet and deploy your Database on an Apache Tomcat Server
+2. Run your Python Flask Application.
+3. Open any terminal and write `npm start`
+4. The app will be opened on `localhost:3000`
+5. To close the application perform `ctrl + c` in the terminal
+
 
 ## Creator
 * [Shivam Sharma](https://github.com/iDK-pseudo)
